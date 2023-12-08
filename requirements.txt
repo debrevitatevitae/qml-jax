@@ -12,6 +12,7 @@ importlib-metadata==7.0.0
 jax==0.4.21
 jaxlib==0.4.21
 jaxopt==0.8.2
+joblib==1.3.2
 ml-dtypes==0.3.1
 networkx==3.2.1
 numpy==1.26.2
@@ -21,8 +22,10 @@ PennyLane==0.33.1
 PennyLane-Lightning==0.33.1
 requests==2.31.0
 rustworkx==0.13.2
+scikit-learn==1.3.2
 scipy==1.11.4
 semantic-version==2.10.0
+threadpoolctl==3.2.0
 toml==0.10.2
 toolz==0.12.0
 typing_extensions==4.8.0
