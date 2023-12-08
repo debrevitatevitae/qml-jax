@@ -72,13 +72,13 @@ if __name__ == '__main__':
         key, minval=0., maxval=2*jnp.pi, shape=(num_features, 3))
 
     # optimization loop with batching
-    num_epochs = 200
-    batch_size = 10
+    num_epochs = 1000
+    batch_size = 20
 
     def batch_data(key):
         _, key = jax.random.split(key)
         idxs_batch = jax.random.choice(key, num_samples, shape=(batch_size,))
-        return key, X[idxs_batch], y[idxs_batch]
+        return key, X_train_scaled[idxs_batch], y_train[idxs_batch]
 
     num_batches_loss_eval = 5
 
@@ -107,12 +107,12 @@ if __name__ == '__main__':
             params, opt_state, X=X_batch, y=y_batch)
 
     # final parameters and loss value
-    loss_value = cross_entropy_loss(params, X, y)
+    loss_value = cross_entropy_loss(params, X_train_scaled, y_train)
     print(f"Final log-loss={loss_value:.2e}")
     print(f"Final params={params}")
 
     # comparison over test samples
-    preds_test = jnp.array([clf_model(x_i, params) for x_i in X_test])
+    preds_test = jnp.array([clf_model(x_i, params) for x_i in X_test_scaled])
     preds_test_labels = (preds_test > 0.5).astype(jnp.int16)
 
     accuracy_test = accuracy_score(y_test, preds_test_labels)
