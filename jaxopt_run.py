@@ -24,28 +24,28 @@ if __name__ == '__main__':
 
     @jax.jit
     @qml.qnode(dev, interface='jax')
-    def vqc(x, theta):
-        qml.Hadamard(wires=0)
-        qml.RZ(x, wires=0)
-        qml.RY(theta, wires=0)
+    def vqc(x, params):
+        qml.RY(x, wires=0)
+        qml.Rot(params[0], params[1], params[2], wires=0)
         return qml.expval(qml.PauliZ(0))
 
     # define a MSE loss with args = (params, X, y)
-    def mse_loss(theta, X, y):
+    def mse_loss(params, X, y):
         errs_squared = jnp.array(
-            [(vqc(x_i, theta) - y_i) ** 2 for x_i, y_i in zip(X, y)])
+            [(vqc(x_i, params) - y_i) ** 2 for x_i, y_i in zip(X, y)])
         return 1/len(y) * jnp.sum(errs_squared)
 
     # define a JaxOpt gradient descent optmizer
-    eta = 0.01
+    eta = 0.1
     opt = jaxopt.GradientDescent(mse_loss, stepsize=eta, maxiter=100)
 
     # define some initial parameters
     _, key = jax.random.split(key)
-    init_theta = jax.random.uniform(key, minval=0., maxval=2*jnp.pi)
+    init_params = jax.random.uniform(
+        key, minval=0., maxval=2*jnp.pi, shape=(3,))
 
     # optimize with optimizer.run syntax
-    res = opt.run(init_theta, X=X, y=y)
+    res = opt.run(init_params, X=X, y=y)
 
     # print the final state and parameters
     print(res.params)
