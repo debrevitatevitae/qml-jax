@@ -144,7 +144,7 @@ if __name__ == '__main__':
         if ep % 10 == 0:
             key, loss_value = compute_ave_kta_loss(key, params)
             print(
-                f"Epoch {ep}: kta averaged over {num_batches_loss_eval} batches = {-loss_value:.4f}")
+                f"Epoch {ep}: kta averaged over {num_batches_loss_eval} batches = {-loss_value:.4f}", flush=True)
 
         # select a batch
         key, X_batch, y_batch = batch_data(key)
@@ -156,5 +156,5 @@ if __name__ == '__main__':
     # final parameters and loss value
     num_batches_loss_eval = 50
     key, loss_value = compute_ave_kta_loss(key, params)
-    print(f"Final KTA={-loss_value:.4f}")
+    print(f"Final KTA={-loss_value:.4f}", flush=True)
     # print(f"Final params={params}")
