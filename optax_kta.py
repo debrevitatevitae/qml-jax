@@ -9,11 +9,12 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
-jax.config.update("jax_enable_x64", True)
+jax.config.update("jax_enable_x64", False)
 
 
 if __name__ == '__main__':
-    key = jax.random.PRNGKey(seed=40)
+    np.random.seed(42)
+    key = jax.random.PRNGKey(seed=42)
 
     # load the iris dataset and select instances from the first 2 classes
     iris = datasets.load_iris()
@@ -75,7 +76,15 @@ if __name__ == '__main__':
         qml.adjoint(embedding)(x2, params, wires)
         return qml.expval(qml.Projector([0]*len(wires), wires=wires))
 
+    # print the kernel circuit with some parameters
+    num_layers = 1
+    # _, key = jax.random.split(key)
+    # params = jax.random.uniform(
+    #     key, minval=0., maxval=2*jnp.pi, shape=(num_layers, 2, num_features))
+    # print(qml.draw(kernel)(X_train_scaled[0], X_train_scaled[1], params)
+    #       )
     # kta-based parametrised loss
+
     def kta_loss(params, X, y):
         # compute the kernel matrix
         N = len(y)
@@ -99,26 +108,25 @@ if __name__ == '__main__':
         return -kta
 
     # define a JaxOpt gradient descent optmizer
-    eta = 0.1
+    eta = 0.01
     adam = optax.adam(learning_rate=eta)
     opt = jaxopt.OptaxSolver(opt=adam, fun=kta_loss)
 
     # define some initial parameters
-    num_layers = 2
     _, key = jax.random.split(key)
     init_params = jax.random.uniform(
         key, minval=0., maxval=2*jnp.pi, shape=(num_layers, 2, num_features))
 
     # optimization loop with batching
-    num_epochs = 50
-    batch_size = 5
+    num_epochs = 500
+    batch_size = 10
 
     def batch_data(key):
         _, key = jax.random.split(key)
         idxs_batch = jax.random.choice(key, num_samples, shape=(batch_size,))
         return key, X_train_scaled[idxs_batch], y_train[idxs_batch]
 
-    num_batches_loss_eval = 5
+    num_batches_loss_eval = 50
 
     def compute_ave_kta_loss(key, params):
         ave_loss = 0.
@@ -130,6 +138,7 @@ if __name__ == '__main__':
 
     opt_state = opt.init_state(init_params, X, y)
     params = init_params
+
     for ep in range(num_epochs):
         # Every some epochs report loss value averaged over some batches
         if ep % 10 == 0:
@@ -145,6 +154,7 @@ if __name__ == '__main__':
             params, opt_state, X=X_batch, y=y_batch)
 
     # final parameters and loss value
-    loss_value = kta_loss(params, X_train_scaled, y_train)
+    num_batches_loss_eval = 50
+    key, loss_value = compute_ave_kta_loss(key, params)
     print(f"Final KTA={-loss_value:.4f}")
     # print(f"Final params={params}")
